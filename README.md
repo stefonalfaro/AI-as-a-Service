@@ -12,18 +12,18 @@ The application has several Models and Controllers that utilize  interfaces to p
 	ICompanyService
 	IUserService
 
-# Data Access Layer: Abstractions of SQL Server and CosmosDB
+## Data Access Layer: Abstractions of SQL Server and CosmosDB
 The IRepository<T> interface serves as an abstraction for the data access layer, providing common methods for data manipulation, such as AddAsync, GetByIdAsync, GetAllAsync, UpdateAsync, and DeleteAsync. By using this interface in the services and controllers, we can easily switch between different data storage implementations, such as SQL Server and CosmosDB, by changing the dependency registration in the Startup class.
 
-# State Management: Abstraction for SignalR
+## State Management: Abstraction for SignalR
 Throughout the application, the IHubContext<ChatHub> interface is used to manage the application state in real-time. It is injected into various services to enable communication between the server and the client. The server can push updates to the clients by invoking methods like Clients.All.SendAsync, which allows the front-end to stay in sync with the back-end without requiring manual refreshes.
 
-# Authentication Middleware:
+## Authentication Middleware:
 The AuthenticationMiddleware is responsible for handling the authentication process. It checks for the presence of an authentication token in the request headers and validates it. If the token is valid, it sets the current user's identity and allows the request to proceed. If the token is invalid or missing, it returns an appropriate HTTP status code, such as 401 Unauthorized.
 
-# Back-end Developer Documentation
+## Back-end Developer Documentation
 
-## Setting up Entity Framework
+### Setting up Entity Framework
 This documentation will guide you through the process of setting up Entity Framework (EF) for the AI as a Service application we have created, ensuring that everything is working correctly.
 Prerequisites
 
@@ -67,7 +67,7 @@ sql
 
 Remember to start your application and use a REST client like Postman to test the API endpoints. If everything is set up correctly, you should be able to interact with the database using the endpoints in the AI as a Service application.
 
-# Front-end Developer Documentation
+## Front-end Developer Documentation
 
 This documentation will guide you through the process of authorizing API requests and handling real-time updates via SignalR in the AI as a Service application for both Angular and React.
 Authentication and Authorization
