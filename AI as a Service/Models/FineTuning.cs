@@ -4,8 +4,13 @@ namespace AI_as_a_Service.Models
 {
     public class FineTuning
     {
-        public int Id { get; set; }
+        public int id { get; set; }
+        public int companyId { get; set; }
         public List<QuestionResponsePair> QuestionResponsePairs { get; set; }
+        public DateTime createdDate { get; set; }
+        public DateTime lastModified { get; set; }
+        public int createdByUserId { get; set; }
+        public int lastModifiedByUserId { get; set; }
     }
 
     public class QuestionResponsePair

@@ -9,16 +9,20 @@ namespace AI_as_a_Service.Controllers
     public class FineTuningController : ControllerBase
     {
         private readonly OpenAI _openAI;
-
-        public FineTuningController()
+        private readonly Configuration _configuration;
+        private readonly ILogger<FineTuningController> _logger;
+        public FineTuningController(Configuration configuration, ILogger<FineTuningController> logger)
         {
-            string apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-            _openAI = new OpenAI(apiKey);
+            _openAI = new OpenAI(configuration.integrationSettings.OpenAPIKey);
+            _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateFineTune([FromBody] CreateFineTuneRequest request)
         {
+            _logger.LogInformation("Create FineTune");
+
             var parameters = new FineTuningParameters
             {
                 ValidationFileId = request.ValidationFile,
@@ -50,6 +54,8 @@ namespace AI_as_a_Service.Controllers
         [HttpGet("list")]
         public async Task<IActionResult> ListFineTunes()
         {
+            _logger.LogInformation("List all FuneTunes");
+
             var fineTunes = await _openAI.ListFineTunesAsync();
             return Ok(fineTunes);
         }
@@ -57,6 +63,8 @@ namespace AI_as_a_Service.Controllers
         [HttpGet("{fineTuneId}")]
         public async Task<IActionResult> RetrieveFineTune(string fineTuneId)
         {
+            _logger.LogInformation("Get FineTune by ID");
+
             var fineTune = await _openAI.RetrieveFineTuneAsync(fineTuneId);
             return Ok(fineTune);
         }
@@ -64,6 +72,8 @@ namespace AI_as_a_Service.Controllers
         [HttpPost("{fineTuneId}/cancel")]
         public async Task<IActionResult> CancelFineTune(string fineTuneId)
         {
+            _logger.LogInformation("Cancel FineTune");
+
             await _openAI.CancelFineTuneAsync(fineTuneId);
             return Ok();
         }

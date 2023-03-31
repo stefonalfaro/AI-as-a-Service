@@ -10,10 +10,13 @@ namespace AI_as_a_Service.Controllers
     public class ChatCompletionController : ControllerBase
     {
         private readonly OpenAI _openAI;
-
-        public ChatCompletionController(OpenAI openAI)
+        private readonly Configuration _configuration;
+        private readonly ILogger<ChatCompletionController> _logger;
+        public ChatCompletionController(OpenAI openAI, Configuration configuration, ILogger<ChatCompletionController> logger)
         {
-            _openAI = openAI;
+            _openAI = new OpenAI(configuration.integrationSettings.OpenAPIKey);
+            _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpPost]
