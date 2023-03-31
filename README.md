@@ -21,9 +21,9 @@ Throughout the application, the IHubContext<ChatHub> interface is used to manage
 ## Authentication Middleware:
 The AuthenticationMiddleware is responsible for handling the authentication process. It checks for the presence of an authentication token in the request headers and validates it. If the token is valid, it sets the current user's identity and allows the request to proceed. If the token is invalid or missing, it returns an appropriate HTTP status code, such as 401 Unauthorized.
 
-## Back-end Developer Documentation
+# Back-end Developer Documentation
 
-### Setting up Entity Framework
+## Setting up Entity Framework
 This documentation will guide you through the process of setting up Entity Framework (EF) for the AI as a Service application we have created, ensuring that everything is working correctly.
 Prerequisites
 
@@ -32,42 +32,40 @@ Ensure that you have the following installed on your development machine:
     .NET SDK
     Visual Studio or Visual Studio Code
 
-Steps to Set Up Entity Framework
+### Steps to Set Up Entity Framework
 
-    Configure the Connection String: In the appsettings.json file, add a new connection string entry under the "ConnectionStrings" section:
-
-    json
-
+1. Configure the Connection String: In the appsettings.json file, add a new connection string entry under the "ConnectionStrings" section:
+```
 {
   "ConnectionStrings": {
     "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=YourDatabaseName;Trusted_Connection=True;MultipleActiveResultSets=true"
   },
   // ...
 }
-
+```
 Replace YourDatabaseName with the desired name for your database.
 
-Create an initial migration: As we have already created the DbContext and necessary model classes, we need to create our initial migration. Open a terminal, navigate to your project folder, and run the following command:
+2. Create an initial migration: As we have already created the DbContext and necessary model classes, we need to create our initial migration. Open a terminal, navigate to your project folder, and run the following command:
 
-csharp
-
+```
 dotnet ef migrations add InitialCreate
-
+```
+	
 This command will generate a new folder called Migrations with the necessary migration files.
 
-Apply the migration: To apply the migration and create the database, run the following command in the terminal:
+3. Apply the migration: To apply the migration and create the database, run the following command in the terminal:
 
-sql
-	
-    dotnet ef database update
+```	
+dotnet ef database update
+```
 
-    This command will create the database with the schema defined in our DbContext and model classes.
+This command will create the database with the schema defined in our DbContext and model classes.
 
-    Test the setup: To ensure everything is working, you can use the provided API endpoints in the application to perform CRUD operations. For instance, you can use the PlansController's GetPlans endpoint to retrieve all records from the Plans table.
+4. Test the setup: To ensure everything is working, you can use the provided API endpoints in the application to perform CRUD operations. For instance, you can use the PlansController's GetPlans endpoint to retrieve all records from the Plans table.
 
 Remember to start your application and use a REST client like Postman to test the API endpoints. If everything is set up correctly, you should be able to interact with the database using the endpoints in the AI as a Service application.
 
-## Front-end Developer Documentation
+# Front-end Developer Documentation
 
 This documentation will guide you through the process of authorizing API requests and handling real-time updates via SignalR in the AI as a Service application for both Angular and React.
 Authentication and Authorization
@@ -77,10 +75,8 @@ The AI as a Service application uses JWT (JSON Web Token) for authentication and
 ## Authentication and Authorization
 
 ### Angular
-Authentication Service: Create an authentication service to handle user login and token storage.
-
-typescript
-
+1. Authentication Service: Create an authentication service to handle user login and token storage.
+```
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
@@ -104,11 +100,10 @@ export class AuthenticationService {
     return localStorage.getItem('token');
   }
 }
+```	
 
-HTTP Interceptor: Create an HTTP interceptor to automatically add the Authorization header to your API requests.
-
-typescript
-
+2. HTTP Interceptor: Create an HTTP interceptor to automatically add the Authorization header to your API requests.
+```
 import { Injectable } from '@angular/core';
 import {
   HttpEvent, HttpInterceptor, HttpHandler, HttpRequest
@@ -130,23 +125,21 @@ export class AuthInterceptor implements HttpInterceptor {
     return next.handle(req);
   }
 }
-
-Register the HTTP Interceptor: In your app.module.ts, register the interceptor in the providers array:
-
-typescript
-
+```
+	
+3. Register the HTTP Interceptor: In your app.module.ts, register the interceptor in the providers array:
+```
 import { AuthInterceptor } from './auth.interceptor';
 
 providers: [
   // ...
   { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
 ],
+```	
 
 ### React
-Authentication Context: Create an authentication context to manage user login state and token storage.
-
-javascript
-
+1. Authentication Context: Create an authentication context to manage user login state and token storage.
+```
 import { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext(null);
@@ -173,11 +166,10 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-Authorize API Requests: When making API requests, include the Authorization header with the JWT token.
-
-javascript
-
+```
+	
+2. Authorize API Requests: When making API requests, include the Authorization header with the JWT token.
+```
 import { useAuth } from './auth-context';
 
 const { token } = useAuth();
@@ -199,21 +191,19 @@ const fetchData = async () => {
   const data = await response.json();
   // Process data
 };
+```
 
 ## Real-time Updates with SignalR
 The AI as a Service application uses SignalR for real-time updates on object state changes. You will need to connect to the SignalR hub and handle the messages for each object update.
 
 ### Angular
-Install SignalR: Install the @microsoft/signalr package using npm or yarn.
-
-bash
-
+1. Install SignalR: Install the @microsoft/signalr package using npm or yarn.
+```
 npm install @microsoft/signalr
-
-SignalR Service: Create a service to handle the SignalR connection and event listeners.
-
-typescript
-
+```
+	
+2. SignalR Service: Create a service to handle the SignalR connection and event listeners.
+```
 import { Injectable } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 
@@ -238,11 +228,10 @@ export class SignalRService {
     this.hubConnection.on(event, callback);
   }
 }
-
-Use the SignalR Service: Inject the SignalR service in your component and handle the events.
-
-typescript
-
+```
+	
+3. Use the SignalR Service: Inject the SignalR service in your component and handle the events.
+```
 import { Component, OnInit } from '@angular/core';
 import { SignalRService } from './signalr.service';
 
@@ -262,18 +251,17 @@ export class AppComponent implements OnInit {
     // Add other event listeners as needed
   }
 }
+```
 
 ### React
-Install SignalR: Install the @microsoft/signalr package using npm or yarn.
-
-bash
-
+1. Install SignalR: Install the @microsoft/signalr package using npm or yarn.
+```
 npm install @microsoft/signalr
+```
+	
+2. SignalR Context: Create a context to handle the SignalR connection and event listeners.
 
-SignalR Context: Create a context to handle the SignalR connection and event listeners.
-
-javascript
-
+```
 import { createContext, useContext, useEffect } from 'react';
 import * as signalR from '@microsoft/signalr';
 
@@ -301,11 +289,11 @@ export const SignalRProvider = ({ children }) => {
     </SignalRContext.Provider>
   );
 };
+```
+	
+3. Use the SignalR Context: In your component, use the SignalR context to handle events.
 
-Use the SignalR Context: In your component, use the SignalR context to handle events.
-
-javascript
-
+```
 import { useEffectimport { useEffect } from 'react';
 import { useSignalR } from './signalr-context';
 
@@ -330,3 +318,4 @@ const SomeComponent = () => {
 
   // Component rendering
 };
+```
