@@ -19,13 +19,7 @@ namespace AI_as_a_Service.Controllers
         [HttpPost]
         public async Task<IActionResult> GetCompletion([FromBody] ChatCompletionRequest request)
         {
-            var messages = request.Messages.Select(m => new ChatMessage
-            {
-                Role = m.Role,
-                Content = m.Content
-            }).ToList();
-
-            var response = await _openAI.ChatCompletionAsync(messages);
+            var response = "";
 
             return Ok(new { response });
         }
