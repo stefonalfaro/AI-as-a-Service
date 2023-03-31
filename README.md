@@ -1,45 +1,332 @@
 # A.I. as a Service
+The application has several Models and Controllers that utilize  interfaces to perform various tasks. The primary function of this application is to serve as an API for managing chat completions, fine-tuning, payments, plans, and configurations. By utilizing these interfaces, the application maintains a modular and flexible architecture, allowing for easy modification and extension of its functionalities.
 
-This documentation describes how to use the OpenAI.cs SDK to interact with OpenAI's API for language model fine-tuning and other operations.
+    IChatCompletionService
+    IFineTuningService
+    IPaymentService
+    IPlanService
+    IRepository<T>
+    IConfigurationService
+    IChatHub
+    IAuthenticationService
+	ICompanyService
+	IUserService
 
-# Data Access Layers (SQL Server and CosmosDB)
-With this implementation, you can easily switch between different data stores by simply changing the registered repository implementation in the dependency injection container.
-I have implemented a custom repsitory class for using Entity Framework or CosmosDB.
+# Data Access Layer: Abstractions of SQL Server and CosmosDB
+The IRepository<T> interface serves as an abstraction for the data access layer, providing common methods for data manipulation, such as AddAsync, GetByIdAsync, GetAllAsync, UpdateAsync, and DeleteAsync. By using this interface in the services and controllers, we can easily switch between different data storage implementations, such as SQL Server and CosmosDB, by changing the dependency registration in the Startup class.
 
-# Entity Framework Core (EF Core)
+# State Management: Abstraction for SignalR
+Throughout the application, the IHubContext<ChatHub> interface is used to manage the application state in real-time. It is injected into various services to enable communication between the server and the client. The server can push updates to the clients by invoking methods like Clients.All.SendAsync, which allows the front-end to stay in sync with the back-end without requiring manual refreshes.
 
-Entity Framework Core (EF Core) can automatically create the database schema for you based on your defined models and DbContext. This feature is called Code First approach, which allows you to generate the database schema from your code rather than defining the schema manually.
+# Authentication Middleware:
+The AuthenticationMiddleware is responsible for handling the authentication process. It checks for the presence of an authentication token in the request headers and validates it. If the token is valid, it sets the current user's identity and allows the request to proceed. If the token is invalid or missing, it returns an appropriate HTTP status code, such as 401 Unauthorized.
 
-When using Code First approach, you define your models and DbContext in code, and then EF Core can create the necessary tables, columns, relationships, and other database objects based on your definitions.
+# Back-end Developer Documentation
 
-To create the database schema, you'll use EF Core migrations. Migrations are a way to apply incremental changes to the database schema while preserving existing data.
+## Setting up Entity Framework
+This documentation will guide you through the process of setting up Entity Framework (EF) for the AI as a Service application we have created, ensuring that everything is working correctly.
+Prerequisites
 
-Here's how to create and apply migrations for your application:
+Ensure that you have the following installed on your development machine:
 
-    Install the EF Core CLI tools by running the following command:
+    .NET SDK
+    Visual Studio or Visual Studio Code
 
-csharp
+Steps to Set Up Entity Framework
 
-dotnet tool install --global dotnet-ef
+    Configure the Connection String: In the appsettings.json file, add a new connection string entry under the "ConnectionStrings" section:
 
-    In the root folder of your project, run the following command to create the initial migration:
+    json
+
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=YourDatabaseName;Trusted_Connection=True;MultipleActiveResultSets=true"
+  },
+  // ...
+}
+
+Replace YourDatabaseName with the desired name for your database.
+
+Create an initial migration: As we have already created the DbContext and necessary model classes, we need to create our initial migration. Open a terminal, navigate to your project folder, and run the following command:
 
 csharp
 
 dotnet ef migrations add InitialCreate
 
-This command will generate a new folder called Migrations with a C# file that represents the initial migration.
+This command will generate a new folder called Migrations with the necessary migration files.
 
-    Next, apply the migration to create the database schema:
+Apply the migration: To apply the migration and create the database, run the following command in the terminal:
 
 sql
+	
+    dotnet ef database update
 
-dotnet ef database update
+    This command will create the database with the schema defined in our DbContext and model classes.
 
-This command will create the database (if it doesn't already exist) and apply the migration to create the necessary tables, columns, and relationships.
+    Test the setup: To ensure everything is working, you can use the provided API endpoints in the application to perform CRUD operations. For instance, you can use the PlansController's GetPlans endpoint to retrieve all records from the Plans table.
 
-When you make changes to your models or DbContext, you can create new migrations to update the database schema. Just run the dotnet ef migrations add command followed by a descriptive name for the migration. Then, use the dotnet ef database update command to apply the new migration.
+Remember to start your application and use a REST client like Postman to test the API endpoints. If everything is set up correctly, you should be able to interact with the database using the endpoints in the AI as a Service application.
 
-Keep in mind that although EF Core can create and manage the database schema for you, it's still important to have a good understanding of SQL and database design principles to ensure your application performs well and can scale as needed.
+# Front-end Developer Documentation
 
-Additionally, EF Core supports other approaches like Database First, which allows you to reverse-engineer your code based on an existing database schema. This is useful when you prefer to create the database schema manually or when working with legacy databases.
+This documentation will guide you through the process of authorizing API requests and handling real-time updates via SignalR in the AI as a Service application for both Angular and React.
+Authentication and Authorization
+
+The AI as a Service application uses JWT (JSON Web Token) for authentication and authorization. To authorize API requests, you need to include the token in the Authorization header of your HTTP requests.
+
+## Authentication and Authorization
+
+### Angular
+Authentication Service: Create an authentication service to handle user login and token storage.
+
+typescript
+
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthenticationService {
+  private apiUrl = 'YOUR_API_BASE_URL';
+
+  constructor(private http: HttpClient) {}
+
+  login(username: string, password: string) {
+    return this.http.post(`${this.apiUrl}/auth/login`, { username, password });
+  }
+
+  setToken(token: string) {
+    localStorage.setItem('token', token);
+  }
+
+  getToken() {
+    return localStorage.getItem('token');
+  }
+}
+
+HTTP Interceptor: Create an HTTP interceptor to automatically add the Authorization header to your API requests.
+
+typescript
+
+import { Injectable } from '@angular/core';
+import {
+  HttpEvent, HttpInterceptor, HttpHandler, HttpRequest
+} from '@angular/common/http';
+import { AuthenticationService } from './authentication.service';
+
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  constructor(private authService: AuthenticationService) {}
+
+  intercept(req: HttpRequest<any>, next: HttpHandler) {
+    const authToken = this.authService.getToken();
+    if (authToken) {
+      const authReq = req.clone({
+        setHeaders: { Authorization: `Bearer ${authToken}` }
+      });
+      return next.handle(authReq);
+    }
+    return next.handle(req);
+  }
+}
+
+Register the HTTP Interceptor: In your app.module.ts, register the interceptor in the providers array:
+
+typescript
+
+import { AuthInterceptor } from './auth.interceptor';
+
+providers: [
+  // ...
+  { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+],
+
+### React
+Authentication Context: Create an authentication context to manage user login state and token storage.
+
+javascript
+
+import { createContext, useContext, useState } from 'react';
+
+const AuthContext = createContext(null);
+
+export const useAuth = () => useContext(AuthContext);
+
+export const AuthProvider = ({ children }) => {
+  const [token, setToken] = useState(localStorage.getItem('token'));
+
+  const login = async (username, password) => {
+    const response = await fetch('YOUR_API_BASE_URL/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await response.json();
+    setToken(data.token);
+    localStorage.setItem('token', data.token);
+  };
+
+  return (
+    <AuthContext.Provider value={{ token, login }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+Authorize API Requests: When making API requests, include the Authorization header with the JWT token.
+
+javascript
+
+import { useAuth } from './auth-context';
+
+const { token } = useAuth();
+
+const fetchData = async () => {
+  const response = await fetch('YOUR_API_BASE_URL/api/some-endpoint', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const datajavascript
+
+import { useAuth } from './auth-context';
+
+const { token } = useAuth();
+
+const fetchData = async () => {
+  const response = await fetch('YOUR_API_BASE_URL/api/some-endpoint', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await response.json();
+  // Process data
+};
+
+## Real-time Updates with SignalR
+The AI as a Service application uses SignalR for real-time updates on object state changes. You will need to connect to the SignalR hub and handle the messages for each object update.
+
+### Angular
+Install SignalR: Install the @microsoft/signalr package using npm or yarn.
+
+bash
+
+npm install @microsoft/signalr
+
+SignalR Service: Create a service to handle the SignalR connection and event listeners.
+
+typescript
+
+import { Injectable } from '@angular/core';
+import * as signalR from '@microsoft/signalr';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class SignalRService {
+  private hubConnection: signalR.HubConnection;
+
+  constructor() {
+    this.hubConnection = new signalR.HubConnectionBuilder()
+      .withUrl('YOUR_API_BASE_URL/chatHub')
+      .build();
+  }
+
+  connect() {
+    this.hubConnection.start()
+      .catch(error => console.error('Error connecting to SignalR: ', error));
+  }
+
+  on(event: string, callback: (...args: any[]) => void) {
+    this.hubConnection.on(event, callback);
+  }
+}
+
+Use the SignalR Service: Inject the SignalR service in your component and handle the events.
+
+typescript
+
+import { Component, OnInit } from '@angular/core';
+import { SignalRService } from './signalr.service';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
+})
+export class AppComponent implements OnInit {
+  constructor(private signalRService: SignalRService) {}
+
+  ngOnInit() {
+    this.signalRService.connect();
+    this.signalRService.on('FineTuneCreated', (fineTuning) => {
+      // Handle FineTuneCreated event
+    });
+    // Add other event listeners as needed
+  }
+}
+
+### React
+Install SignalR: Install the @microsoft/signalr package using npm or yarn.
+
+bash
+
+npm install @microsoft/signalr
+
+SignalR Context: Create a context to handle the SignalR connection and event listeners.
+
+javascript
+
+import { createContext, useContext, useEffect } from 'react';
+import * as signalR from '@microsoft/signalr';
+
+const SignalRContext = createContext(null);
+
+export const useSignalR = () => useContext(SignalRContext);
+
+export const SignalRProvider = ({ children }) => {
+  const hubConnection = new signalR.HubConnectionBuilder()
+    .withUrl('YOUR_API_BASE_URL/chatHub')
+    .build();
+
+  useEffect(() => {
+    hubConnection.start()
+      .catch(error => console.error('Error connecting to SignalR: ', error));
+
+    return () => {
+      hubConnection.stop();
+    };
+  }, [hubConnection]);
+
+  return (
+    <SignalRContext.Provider value={hubConnection}>
+      {children}
+    </SignalRContext.Provider>
+  );
+};
+
+Use the SignalR Context: In your component, use the SignalR context to handle events.
+
+javascript
+
+import { useEffectimport { useEffect } from 'react';
+import { useSignalR } from './signalr-context';
+
+const SomeComponent = () => {
+  const hubConnection = useSignalR();
+
+  useEffect(() => {
+    const handleFineTuneCreated = (fineTuning) => {
+      // Handle FineTuneCreated event
+    };
+
+    hubConnection.on('FineTuneCreated', handleFineTuneCreated);
+
+    // Add other event listeners as needed
+
+    // Cleanup event listeners on unmount
+    return () => {
+      hubConnection.off('FineTuneCreated', handleFineTuneCreated);
+      // Remove other event listeners as needed
+    };
+  }, [hubConnection]);
+
+  // Component rendering
+};

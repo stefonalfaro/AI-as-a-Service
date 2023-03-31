@@ -2,6 +2,7 @@
 {
     public class Configuration
     {
+        public int id { get; set; }
         private static Configuration _instance;
 
         public int FreemiumTimer { get; set; }

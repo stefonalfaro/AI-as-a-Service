@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using AI_as_a_Service.Data;
 using AI_as_a_Service.Services.Interfaces;
+using AI_as_a_Service.Interfaces.Services;
 
 namespace AI_as_a_Service.Controllers
 {
@@ -13,33 +14,53 @@ namespace AI_as_a_Service.Controllers
     {
         private readonly ILogger<ConfigurationController> _logger;
         private readonly Configuration _configuration;
-        private readonly IHubContext<ChatHub> _hubContext;
-        private readonly IRepository<Configuration> _dataAccessLayer;
+        private readonly IConfigurationService _configurationService;
 
-        public ConfigurationController(Configuration configuration, ILogger<ConfigurationController> logger, IHubContext<ChatHub> hubContext, IRepository<Configuration> dataAccessLayer)
+        public ConfigurationController(Configuration configuration, ILogger<ConfigurationController> logger, IConfigurationService configurationService)
         {
             _configuration = configuration;
             _logger = logger;
-            _hubContext = hubContext;
-            _dataAccessLayer = dataAccessLayer;
+            _configurationService = configurationService;
         }
 
+        // Get configuration
         [HttpGet]
-        public ActionResult<Configuration> GetConfiguration()
+        public async Task<ActionResult<Configuration>> GetConfiguration()
         {
             _logger.LogInformation("Get Configuration");
 
-            return Ok(_configuration);
+            var configuration = await _configurationService.GetConfigurationAsync();
+            return Ok(configuration);
         }
 
+        // Update configuration
         [HttpPut]
-        public ActionResult UpdateConfiguration([FromBody] Configuration newConfiguration)
+        public async Task<ActionResult> UpdateConfiguration([FromBody] Configuration newConfiguration)
         {
             _logger.LogInformation("Update Configuration");
 
-            _configuration.FreemiumTimer = newConfiguration.FreemiumTimer;
-            _configuration.DisableAllLogin = newConfiguration.DisableAllLogin;
-            return NoContent();
+            try
+            {
+                await _configurationService.UpdateConfigurationAsync(newConfiguration);
+
+                // Update the in-memory configuration
+                _configuration.FreemiumTimer = newConfiguration.FreemiumTimer;
+                _configuration.DisableAllLogin = newConfiguration.DisableAllLogin;
+
+                return NoContent();
+            }
+            catch (InvalidOperationException)
+            {
+                var existingConfiguration = await _configurationService.GetConfigurationAsync();
+
+                if (existingConfiguration == null)
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
         }
     }
+
 }

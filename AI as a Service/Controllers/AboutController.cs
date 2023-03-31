@@ -16,7 +16,7 @@ namespace AI_as_a_Service.Controllers
         {
             var response = new AboutResponse
             {
-                APIVersion = "1.0.0"
+                APIVersion = "1.0.1"
             };
 
             return Ok(response);

@@ -1,20 +1,59 @@
-﻿using AI_as_a_Service.Models;
+﻿using AI_as_a_Service.Interfaces.Services;
+using AI_as_a_Service.Middlewares;
+using AI_as_a_Service.Models;
 using AI_as_a_Service.Services.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 
 namespace AI_as_a_Service.Services
 {
     public class CompanyService : ICompanyService
     {
-        // You might need to inject a repository, database context, or other dependencies here
-        // For example: private readonly ICompanyRepository _companyRepository;
+        private readonly IRepository<Company> _dataAccessLayer;
+        private readonly IHubContext<ChatHub> _stateManagement;
 
-        // public CompanyService(ICompanyRepository companyRepository) => _companyRepository = companyRepository;
+        public CompanyService(IRepository<Company> dataAccessLayer, IHubContext<ChatHub> stateManagement)
+        {
+            _dataAccessLayer = dataAccessLayer;
+            _stateManagement = stateManagement;
+        }
 
         public async Task<IEnumerable<Company>> GetAllCompaniesAsync()
         {
-            // Replace this with actual implementation, for example:
-            // return await _companyRepository.GetAllAsync();
-            return new List<Company>();
+            return await _dataAccessLayer.GetAllAsync();
+        }
+
+        public async Task<Company> GetCompanyAsync(int id)
+        {
+            return await _dataAccessLayer.GetByIdAsync(id);
+        }
+
+        public async Task<Company> CreateCompanyAsync(Company company)
+        {
+            await _dataAccessLayer.AddAsync(company);
+            await _stateManagement.Clients.All.SendAsync("CompanyCreated", company);
+            return company;
+        }
+
+        public async Task UpdateCompanyAsync(int id, Company company)
+        {
+            if (id != company.id)
+            {
+                throw new ArgumentException("Invalid company ID");
+            }
+
+            await _dataAccessLayer.UpdateAsync(company);
+            await _stateManagement.Clients.All.SendAsync("CompanyUpdated", company);
+        }
+
+        public async Task DeleteCompanyAsync(int id)
+        {
+            var company = await _dataAccessLayer.GetByIdAsync(id);
+            if (company != null)
+            {
+                await _dataAccessLayer.DeleteAsync(id);
+                await _stateManagement.Clients.All.SendAsync("CompanyDeleted", company);
+            }
         }
     }
+
 }

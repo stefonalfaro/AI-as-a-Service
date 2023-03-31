@@ -6,6 +6,7 @@ using AI_as_a_Service.Middlewares;
 using Microsoft.AspNetCore.SignalR;
 using AI_as_a_Service.Data;
 using static AI_as_a_Service.Models.ChatCompletions;
+using AI_as_a_Service.Interfaces.Services;
 
 namespace AI_as_a_Service.Controllers
 {
@@ -13,26 +14,25 @@ namespace AI_as_a_Service.Controllers
     [Route("api/[controller]")]
     public class ChatCompletionController : ControllerBase
     {
-        private readonly OpenAISDK _openAI;
-        private readonly Configuration _configuration;
+        private readonly IChatCompletionService _chatCompletionService;
         private readonly ILogger<ChatCompletionController> _logger;
         private readonly IHubContext<ChatHub> _hubContext;
-        private readonly IRepository<ChatCompletions> _dataAccessLayer;
 
-        public ChatCompletionController(Configuration configuration, ILogger<ChatCompletionController> logger, IHubContext<ChatHub> hubContext, IRepository<ChatCompletions> dataAccessLayer)
+        public ChatCompletionController(IChatCompletionService chatCompletionService, ILogger<ChatCompletionController> logger, IHubContext<ChatHub> hubContext)
         {
-            _openAI = new OpenAISDK(configuration.integrationSettings.OpenAPIKey);
-            _configuration = configuration;
+            _chatCompletionService = chatCompletionService;
             _logger = logger;
-            _dataAccessLayer = dataAccessLayer;
+            _hubContext = hubContext;
         }
 
         [HttpPost]
         public async Task<IActionResult> GetCompletion([FromBody] ChatCompletionRequest request)
         {
-            var response = "";
+            _logger.LogInformation("Get Chat Completion");
 
+            var response = await _chatCompletionService.GetCompletionAsync(request);
             return Ok(new { response });
         }
     }
+
 }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using AI_as_a_Service.Services.Interfaces;
+using AI_as_a_Service.Interfaces.Services;
 
 namespace AI_as_a_Service.Controllers
 {
@@ -13,28 +14,27 @@ namespace AI_as_a_Service.Controllers
     public class PlansController : ControllerBase
     {
         private readonly ILogger<PlansController> _logger;
-        private readonly Configuration _configuration;
-        private readonly IHubContext<ChatHub> _hubContext;
-        private readonly IRepository<Plan> _dataAccessLayer;
-        public PlansController(ILogger<PlansController> logger, Configuration configuration, IHubContext<ChatHub> hubContext, IRepository<Plan> dataAccessLayer)
+        private readonly IPlanService _planService;
+        private readonly IHubContext<ChatHub> _stateManagement;
+
+        public PlansController(ILogger<PlansController> logger, IPlanService planService, IHubContext<ChatHub> stateManagement)
         {
             _logger = logger;
-            _configuration = configuration;
-            _hubContext = hubContext;
-            _dataAccessLayer = dataAccessLayer;
+            _planService = planService;
+            _stateManagement = stateManagement;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Plan>>> GetPlans()
         {
-            var plans = await _dataAccessLayer.GetAllAsync();
+            var plans = await _planService.GetPlansAsync();
             return Ok(plans);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Plan>> GetPlan(Guid id)
         {
-            var plan = await _dataAccessLayer.GetByIdAsync(id);
+            var plan = await _planService.GetPlanAsync(id);
 
             if (plan == null)
             {
@@ -47,25 +47,27 @@ namespace AI_as_a_Service.Controllers
         [HttpPost]
         public async Task<ActionResult<Plan>> CreatePlan(Plan plan)
         {
-            await _dataAccessLayer.AddAsync(plan);
-            return CreatedAtAction(nameof(GetPlan), new { id = plan.id }, plan);
+            var createdPlan = await _planService.CreatePlanAsync(plan);
+            return CreatedAtAction(nameof(GetPlan), new { id = createdPlan.id }, createdPlan);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePlan(int id, Plan plan)
         {
-            if (id != plan.id)
+            try
+            {
+                await _planService.UpdatePlanAsync(id, plan);
+
+                // Send the updated plan to the SignalR clients
+                await _stateManagement.Clients.All.SendAsync("PlanUpdated", plan);
+            }
+            catch (ArgumentException)
             {
                 return BadRequest();
             }
-
-            try
-            {
-                await _dataAccessLayer.UpdateAsync(plan);
-            }
             catch (InvalidOperationException)
             {
-                var existingPlan = await _dataAccessLayer.GetByIdAsync(id);
+                var existingPlan = await _planService.GetPlanAsync(id);
 
                 if (existingPlan == null)
                 {
@@ -81,14 +83,13 @@ namespace AI_as_a_Service.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePlan(int id)
         {
-            var plan = await _dataAccessLayer.GetByIdAsync(id);
+            var plan = await _planService.GetPlanAsync(id);
 
             if (plan == null)
             {
                 return NotFound();
             }
-
-            await _dataAccessLayer.DeleteAsync(id);
+            await _planService.DeletePlanAsync(id);
             return NoContent();
         }
     }

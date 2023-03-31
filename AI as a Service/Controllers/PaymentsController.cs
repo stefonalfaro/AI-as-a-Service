@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Stripe;
 using AI_as_a_Service.Services.Interfaces;
+using AI_as_a_Service.Interfaces.Services;
 
 namespace AI_as_a_Service.Controllers
 {
@@ -14,17 +15,12 @@ namespace AI_as_a_Service.Controllers
     public class PaymentsController : ControllerBase
     {
         private readonly ILogger<PaymentsController> _logger;
-        private readonly Configuration _configuration;
-        StripeSDK _stripe;
-        private readonly IHubContext<ChatHub> _hubContext;
-        private readonly IRepository<Payment> _dataAccessLayer;
+        private readonly IPaymentService _paymentService;
 
-        public PaymentsController(ILogger<PaymentsController> logger, Configuration configuration, IHubContext<ChatHub> hubContext, IRepository<Payment> dataAccessLayer)
+        public PaymentsController(ILogger<PaymentsController> logger, IPaymentService paymentService)
         {
             _logger = logger;
-            _configuration = configuration;
-            _stripe = new StripeSDK(configuration.integrationSettings.StripeAPIKey);
-            _dataAccessLayer = dataAccessLayer;
+            _paymentService = paymentService;
         }
 
         [HttpPost("add-card")]
@@ -33,20 +29,10 @@ namespace AI_as_a_Service.Controllers
             // Replace with the user's email from your authentication system
             string userEmail = "user@example.com";
 
-            // Create a Stripe customer for the user if they don't already have one
-            Customer customer = await _stripe.CreateCustomerAsync(userEmail);
-
-            // Create a payment method with the user's credit card information
-            PaymentMethod paymentMethod = await _stripe.CreatePaymentMethodAsync(payment);
-
-            // Attach the payment method to the customer
-            await _stripe.AttachPaymentMethodToCustomerAsync(customer.Id, paymentMethod.Id);
-
-            // TODO: Save the customer ID and payment method ID in your database for future use
+            await _paymentService.AddCardAsync(payment, userEmail);
 
             return Ok();
         }
-
 
         [HttpPost("create-subscription")]
         public async Task<IActionResult> CreateSubscriptionAsync(string planId)
@@ -54,13 +40,10 @@ namespace AI_as_a_Service.Controllers
             // Replace with the customer ID from your database
             string customerId = "cus_123456789";
 
-            // Create a subscription
-            Subscription subscription = await _stripe.CreateSubscriptionAsync(customerId, planId);
-
-            // TODO: Save the subscription ID in your database for future use
+            await _paymentService.CreateSubscriptionAsync(customerId, planId);
 
             return Ok();
-
         }
     }
+
 }
