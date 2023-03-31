@@ -6,12 +6,12 @@ using Newtonsoft.Json;
 
 namespace AI_as_a_Service.Helpers
 {
-    public class OpenAI
+    public class OpenAISDK
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
 
-        public OpenAI(string apiKey)
+        public OpenAISDK(string apiKey)
         {
             _httpClient = new HttpClient { BaseAddress = new Uri("https://api.openai.com/v1/") };
             _apiKey = apiKey;

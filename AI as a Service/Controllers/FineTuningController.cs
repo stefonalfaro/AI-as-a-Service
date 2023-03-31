@@ -1,6 +1,10 @@
-﻿using AI_as_a_Service.Helpers;
+﻿using AI_as_a_Service.Data;
+using AI_as_a_Service.Helpers;
+using AI_as_a_Service.Middlewares;
 using AI_as_a_Service.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using AI_as_a_Service.Services.Interfaces;
 
 namespace AI_as_a_Service.Controllers
 {
@@ -8,14 +12,19 @@ namespace AI_as_a_Service.Controllers
     [Route("api/[controller]")]
     public class FineTuningController : ControllerBase
     {
-        private readonly OpenAI _openAI;
+        private readonly OpenAISDK _openAI;
         private readonly Configuration _configuration;
         private readonly ILogger<FineTuningController> _logger;
-        public FineTuningController(Configuration configuration, ILogger<FineTuningController> logger)
+        private readonly IHubContext<ChatHub> _hubContext;
+        private readonly IRepository<FineTuning> _dataAccessLayer;
+
+        public FineTuningController(Configuration configuration, ILogger<FineTuningController> logger, IHubContext<ChatHub> hubContext, IRepository<FineTuning> dataAccessLayer)
         {
-            _openAI = new OpenAI(configuration.integrationSettings.OpenAPIKey);
+            _openAI = new OpenAISDK(configuration.integrationSettings.OpenAPIKey);
             _configuration = configuration;
             _logger = logger;
+            _hubContext = hubContext;
+            _dataAccessLayer = dataAccessLayer;
         }
 
         [HttpPost("create")]

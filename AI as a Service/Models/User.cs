@@ -12,6 +12,9 @@
         public DateTime createdDate { get; set; }
         public DateTime lastLogin { get; set; }
         public DateTime lastModified { get; set; }
+        public string verificationCode { get; set; }
+        public bool isActivated { get; set; }
+        public string role { get; set; }
     }
 
     public class LoginRequest

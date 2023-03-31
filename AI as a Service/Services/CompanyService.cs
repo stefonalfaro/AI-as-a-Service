@@ -1,7 +1,7 @@
 ﻿using AI_as_a_Service.Models;
 using AI_as_a_Service.Services.Interfaces;
 
-namespace AI_as_a_Service.Services.Implementations
+namespace AI_as_a_Service.Services
 {
     public class CompanyService : ICompanyService
     {
