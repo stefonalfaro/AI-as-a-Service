@@ -11,6 +11,8 @@ using AI_as_a_Service.Services.Interfaces;
 using AI_as_a_Service.Services;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using Accord.MachineLearning;
+using Accord.Statistics.Models.Regression;
 
 namespace AI_as_a_Service.Controllers
 {
@@ -31,36 +33,18 @@ namespace AI_as_a_Service.Controllers
         [HttpPost("train-linear-regression")]
         public IActionResult TrainLinearRegression()
         {
-            // Prepare your training data
-            // Replace with your actual data and preprocessing steps
-            double[][] inputs = new double[][] {
-                new double[] { 1.0, 2.0, 3.0 },
-                new double[] { 4.0, 5.0, 6.0 },
-                new double[] { 7.0, 8.0, 9.0 },
-                new double[] { 10.0, 11.0, 12.0 }}; 
-            
-            double[] outputs = new double[] { 2.0, 5.0, 8.0, 11.0 };
-
             // Train the model using linear regression
-            var trainedModel = _trainingService.TrainLinearRegression(inputs, outputs);
-
-            // Evaluate the model
-            //double[] predictedOutputs = trainedModel.Predict(inputs);
-            var loss = new SquareLoss(outputs);
-            //double error = loss.Loss(predictedOutputs);
+            var trainedModel = _trainingService.TrainLinearRegression();
 
             // Save the model or its parameters for later use
             _trainingService.SaveTrainedModel(trainedModel);
 
-            // Update clients using SignalR
-
-
             // Return the result
-            return Ok(new { Model = trainedModel, Error = "" });
+            return Ok(new { Model = trainedModel });
         }
 
         [HttpGet("predict")]
-        public IActionResult Predict(/* your input parameters */)
+        public IActionResult Predict([FromQuery] double[] input)
         {
             // Load the trained model
             var trainedModel = _trainingService.LoadTrainedModel();
@@ -70,13 +54,142 @@ namespace AI_as_a_Service.Controllers
                 return BadRequest("Model not found or not trained yet.");
             }
 
-            // Prepare the input for prediction
-            double[] input = new double[] { 1.0, 2.0, 3.0 };
-
             // Make a prediction
             double prediction = _trainingService.Predict(trainedModel, input);
 
             return Ok(new { Prediction = prediction });
+        }
+
+        [HttpPost("train-kmeans-clustering")]
+        public IActionResult TrainKMeansClustering(double[][] inputs, int numberOfClusters)
+        {
+            KMeans kmeans = _trainingService.TrainKMeansClustering(inputs, numberOfClusters);
+            return Ok(new { ClusteringModel = kmeans });
+        }
+
+        [HttpPost("train-logistic-regression")]
+        public IActionResult TrainLogisticRegression([FromBody] LogisticRegressionTrainingData trainingData)
+        {
+            LogisticRegression logisticRegression = _trainingService.TrainLogisticRegression(trainingData.Inputs, trainingData.Outputs);
+            return Ok(new { RegressionModel = logisticRegression });
+        }
+
+        [HttpPost("train-dbscan")]
+        public IActionResult TrainDBSCAN(double[][] inputs, double epsilon, int minPoints)
+        {
+
+            // Train the DBSCAN clustering algorithm
+            //DBSCAN dbscan = _trainingService.TrainDBSCAN(inputs, epsilon, minPoints);
+
+            // Return the result
+            //return Ok(new { Model = dbscan });
+            return Ok();
+        }
+
+        // Similarly, create functions for other algorithms
+        [HttpPost("train-gaussian-mixture-model")]
+        public IActionResult TrainGaussianMixtureModel(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
+        }
+
+        [HttpPost("train-grubbs-test")]
+        public IActionResult TrainGrubbsTest(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
+        }
+
+        [HttpPost("train-autoencoder")]
+        public IActionResult TrainAutoencoder(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
+        }
+
+        [HttpPost("train-decision-trees")]
+        public IActionResult TrainDecisionTrees(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
+        }
+
+        [HttpPost("train-random-forests")]
+        public IActionResult TrainRandomForests(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
+        }
+
+        [HttpPost("train-gradient-boosted-trees")]
+        public IActionResult TrainGradientBoostedTrees(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
+        }
+
+        [HttpPost("train-support-vector-machines")]
+        public IActionResult TrainSupportVectorMachines(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
+        }
+
+        [HttpPost("train-feedforward-neural-network")]
+        public IActionResult TrainFeedforwardNeuralNetwork(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
+        }
+
+        [HttpPost("train-convolutional-neural-network")]
+        public IActionResult TrainConvolutionalNeuralNetwork(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
+        }
+
+        [HttpPost("train-recurrent-neural-network")]
+        public IActionResult TrainRecurrentNeuralNetwork(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
+        }
+
+        [HttpPost("train-k-nearest-neighbors")]
+        public IActionResult TrainKNearestNeighbors(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
+        }
+
+        [HttpPost("train-time-series-models")]
+        public IActionResult TrainTimeSeriesModels(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
+        }
+
+        [HttpPost("train-support-vector-regression")]
+        public IActionResult TrainSupportVectorRegression(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
+        }
+
+        [HttpPost("train-random-forest-regression")]
+        public IActionResult TrainRandomForestRegression(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
+        }
+
+        [HttpPost("train-gradient-boosting-regression")]
+        public IActionResult TrainGradientBoostingRegression(/* your input parameters */)
+        {
+            // ...
+            return new OkResult();
         }
     }
 }

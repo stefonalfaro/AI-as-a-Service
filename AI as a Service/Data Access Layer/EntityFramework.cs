@@ -23,7 +23,7 @@ namespace AI_as_a_Service.Data
     }
 
     //If you want to implement a generic repository pattern for easy CRUD operations, you can create a Repository class that accepts a generic type and provides common data access methods:
-    public class SQLServerRepository<TEntity> where TEntity : class
+    public class SQLServerRepository<TEntity> : IRepository<TEntity> where TEntity : class
     {
         private readonly ApplicationDbContext _context;
         private readonly DbSet<TEntity> _dbSet;
@@ -65,6 +65,21 @@ namespace AI_as_a_Service.Data
         public async Task<bool> ExistsAsync(Guid id)
         {
             return await _dbSet.FindAsync(id) != null;
+        }
+
+        public Task<TEntity> GetByIdAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteAsync(int id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

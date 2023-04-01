@@ -45,5 +45,4 @@ namespace AI_as_a_Service.Controllers
             return Ok();
         }
     }
-
 }

@@ -12,9 +12,9 @@ namespace AI_as_a_Service.Services
         private readonly Configuration _configuration;
         private readonly IRepository<ChatCompletions> _dataAccessLayer;
 
-        public ChatCompletionService(Configuration configuration, IRepository<ChatCompletions> dataAccessLayer)
+        public ChatCompletionService(OpenAISDK openAI, Configuration configuration, IRepository<ChatCompletions> dataAccessLayer)
         {
-            _openAI = new OpenAISDK(configuration.integrationSettings.OpenAPIKey);
+            _openAI = openAI;
             _configuration = configuration;
             _dataAccessLayer = dataAccessLayer;
         }

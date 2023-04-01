@@ -5,6 +5,8 @@ using AI_as_a_Service.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using AI_as_a_Service.Services.Interfaces;
+using AI_as_a_Service.Interfaces.Services;
+using AI_as_a_Service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,30 +20,39 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-////SignalR
-//builder.Services.AddSignalR();
+//Email Service
+builder.Services.AddScoped<EmailService>();
 
-//// Add services to the container.
-//builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+////SignalR
+builder.Services.AddSignalR();
 
 ////SQL Server EntityFramework "Repository" class I made to make everything easier
-//builder.Services.AddScoped(typeof(IRepository<>), typeof(SQLServerRepository<>));
+builder.Services.AddScoped(typeof(IRepository<>), typeof(SQLServerRepository<>));
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 ////CosmosDB "Repository"
 //builder.Services.AddScoped(typeof(IRepository<>), typeof(CosmosDbRepository<>));
-////And configure the CosmosDbSettings class
 //builder.Services.Configure<CosmosDbSettings>(builder.Configuration.GetSection("CosmosDbSettings"));
 //builder.Services.AddSingleton(x => x.GetRequiredService<IOptions<CosmosDbSettings>>().Value);
 
+//Services
+builder.Services.AddScoped<IUserService, UsersService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IFineTuningService, FineTuningService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<ITrainingService, TrainingService>();
+builder.Services.AddScoped<IChatCompletionService, ChatCompletionService>();
+builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
+builder.Services.AddScoped<IPlanService, PlanService>();
 
 // Add OpenAI helper class
-//builder.Services.AddSingleton(new OpenAI(builder.Configuration["OpenAI:ApiKey"]));
+builder.Services.AddSingleton(new OpenAISDK(builder.Configuration["OpenAI:ApiKey"]));
 
 // Add Configuration singleton
 builder.Services.AddSingleton(Configuration.Instance); // Add this line to register the Configuration singleton
 
-//If we do this then we don't need to use it in the constructur, but this is wrong I believe // Add StripeService
-//builder.Services.AddSingleton(new StripeSDK(builder.Configuration["Stripe:ApiKey"]));
+// Add StripeService
+builder.Services.AddSingleton(new StripeSDK(builder.Configuration["Stripe:ApiKey"]));
 
 var app = builder.Build();
 
@@ -61,7 +72,7 @@ app.UseEndpoints(endpoints =>
     endpoints.MapControllers();
 
     //SignalR Server
-    //endpoints.MapHub<ChatHub>("/chatHub");
+    endpoints.MapHub<ChatHub>("/chatHub");
 });
 
 app.UseHttpsRedirection();

@@ -10,10 +10,10 @@ namespace AI_as_a_Service.Services
         private readonly Configuration _configuration;
         private readonly StripeSDK _stripe;
 
-        public PaymentService(Configuration configuration)
+        public PaymentService(Configuration configuration, StripeSDK stripe)
         {
             _configuration = configuration;
-            _stripe = new StripeSDK(configuration.integrationSettings.StripeAPIKey);
+            _stripe = stripe;
         }
 
         public async Task AddCardAsync(Payment payment, string userEmail)

@@ -18,6 +18,11 @@ namespace AI_as_a_Service.Services
             _emailPassword = emailPassword;
         }
 
+        public EmailService()
+        {
+
+        }
+
         public async Task SendEmailAsync(string emailTo, string subject, string body)
         {
             using var client = new SmtpClient(_smtpHost, _smtpPort)
