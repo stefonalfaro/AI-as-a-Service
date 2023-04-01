@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Accord" Version="3.8.0" />
+    <PackageReference Include="Accord.Statistics" Version="3.8.0" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.32.3" />
     <PackageReference Include="Microsoft.Azure.SignalR" Version="1.21.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.4" />

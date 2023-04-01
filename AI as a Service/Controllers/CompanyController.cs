@@ -15,13 +15,11 @@ namespace AI_as_a_Service.Controllers
     public class CompanyController : ControllerBase
     {
         private readonly ICompanyService _companyService;
-        private readonly Configuration _configuration;
         private readonly ILogger<CompanyController> _logger;
 
-        public CompanyController(ICompanyService companyService, Configuration configuration, ILogger<CompanyController> logger)
+        public CompanyController(ICompanyService companyService, ILogger<CompanyController> logger)
         {
             _companyService = companyService;
-            _configuration = configuration;
             _logger = logger;
         }
 

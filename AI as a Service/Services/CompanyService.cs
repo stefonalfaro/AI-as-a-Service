@@ -1,4 +1,5 @@
-﻿using AI_as_a_Service.Interfaces.Services;
+﻿using AI_as_a_Service.Controllers;
+using AI_as_a_Service.Interfaces.Services;
 using AI_as_a_Service.Middlewares;
 using AI_as_a_Service.Models;
 using AI_as_a_Service.Services.Interfaces;
@@ -10,11 +11,14 @@ namespace AI_as_a_Service.Services
     {
         private readonly IRepository<Company> _dataAccessLayer;
         private readonly IHubContext<ChatHub> _stateManagement;
+        private readonly Configuration _configuration;
+        private readonly ILogger<CompanyService> _logger;
 
-        public CompanyService(IRepository<Company> dataAccessLayer, IHubContext<ChatHub> stateManagement)
+        public CompanyService(IRepository<Company> dataAccessLayer, IHubContext<ChatHub> stateManagement, Configuration configuration)
         {
             _dataAccessLayer = dataAccessLayer;
             _stateManagement = stateManagement;
+            _configuration = configuration;
         }
 
         public async Task<IEnumerable<Company>> GetAllCompaniesAsync()
@@ -55,5 +59,4 @@ namespace AI_as_a_Service.Services
             }
         }
     }
-
 }

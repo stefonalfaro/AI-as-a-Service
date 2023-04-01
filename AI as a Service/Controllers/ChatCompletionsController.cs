@@ -16,13 +16,11 @@ namespace AI_as_a_Service.Controllers
     {
         private readonly IChatCompletionService _chatCompletionService;
         private readonly ILogger<ChatCompletionController> _logger;
-        private readonly IHubContext<ChatHub> _hubContext;
 
-        public ChatCompletionController(IChatCompletionService chatCompletionService, ILogger<ChatCompletionController> logger, IHubContext<ChatHub> hubContext)
+        public ChatCompletionController(IChatCompletionService chatCompletionService, ILogger<ChatCompletionController> logger)
         {
             _chatCompletionService = chatCompletionService;
             _logger = logger;
-            _hubContext = hubContext;
         }
 
         [HttpPost]

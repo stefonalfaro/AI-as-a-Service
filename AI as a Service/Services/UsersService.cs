@@ -1,4 +1,5 @@
-﻿using AI_as_a_Service.Interfaces.Services;
+﻿using AI_as_a_Service.Controllers;
+using AI_as_a_Service.Interfaces.Services;
 using AI_as_a_Service.Middlewares;
 using AI_as_a_Service.Models;
 using AI_as_a_Service.Services.Interfaces;
@@ -11,12 +12,16 @@ namespace AI_as_a_Service.Services
         private readonly IRepository<User> _dataAccessLayer;
         private readonly EmailService _emailService;
         private readonly IHubContext<ChatHub> _stateManagement;
+        private readonly Configuration _configuration;
+        private readonly ILogger<UsersService> _logger;
 
-        public UsersService(IRepository<User> dataAccessLayer, EmailService emailService, IHubContext<ChatHub> stateManagement)
+        public UsersService(IRepository<User> dataAccessLayer, EmailService emailService, IHubContext<ChatHub> stateManagement, Configuration configuration, ILogger<UsersService> logger)
         {
             _dataAccessLayer = dataAccessLayer;
             _emailService = emailService;
             _stateManagement = stateManagement;
+            _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<User>> GetAllUsersAsync()

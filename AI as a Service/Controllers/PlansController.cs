@@ -15,13 +15,11 @@ namespace AI_as_a_Service.Controllers
     {
         private readonly ILogger<PlansController> _logger;
         private readonly IPlanService _planService;
-        private readonly IHubContext<ChatHub> _stateManagement;
 
-        public PlansController(ILogger<PlansController> logger, IPlanService planService, IHubContext<ChatHub> stateManagement)
+        public PlansController(ILogger<PlansController> logger, IPlanService planService)
         {
             _logger = logger;
             _planService = planService;
-            _stateManagement = stateManagement;
         }
 
         [HttpGet]
@@ -56,10 +54,7 @@ namespace AI_as_a_Service.Controllers
         {
             try
             {
-                await _planService.UpdatePlanAsync(id, plan);
-
-                // Send the updated plan to the SignalR clients
-                await _stateManagement.Clients.All.SendAsync("PlanUpdated", plan);
+                await _planService.UpdatePlanAsync(id, plan);           
             }
             catch (ArgumentException)
             {
@@ -90,6 +85,7 @@ namespace AI_as_a_Service.Controllers
                 return NotFound();
             }
             await _planService.DeletePlanAsync(id);
+           
             return NoContent();
         }
     }
