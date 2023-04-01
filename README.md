@@ -11,6 +11,8 @@ The application has several Models and Controllers that utilize  interfaces to p
     IAuthenticationService
 	ICompanyService
 	IUserService
+	IEmailService
+	ITrainingService
 
 ## Data Access Layer: Abstractions of SQL Server and CosmosDB
 The IRepository<T> interface serves as an abstraction for the data access layer, providing common methods for data manipulation, such as AddAsync, GetByIdAsync, GetAllAsync, UpdateAsync, and DeleteAsync. By using this interface in the services and controllers, we can easily switch between different data storage implementations, such as SQL Server and CosmosDB, by changing the dependency registration in the Startup class.
