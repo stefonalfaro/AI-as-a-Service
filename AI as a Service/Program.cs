@@ -7,6 +7,8 @@ using Microsoft.Extensions.Options;
 using AI_as_a_Service.Services.Interfaces;
 using AI_as_a_Service.Interfaces.Services;
 using AI_as_a_Service.Services;
+using Polly;
+using Polly.Extensions.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +55,19 @@ builder.Services.AddSingleton(Configuration.Instance); // Add this line to regis
 
 // Add StripeService
 builder.Services.AddSingleton(new StripeSDK(builder.Configuration["Stripe:ApiKey"]));
+
+// JIRA Cloud API Client
+builder.Services.AddHttpClient<JiraApiClient>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["JiraApi:BaseUrl"]);
+    client.DefaultRequestHeaders.Add("Authorization", $"Basic {builder.Configuration["JiraApi:EncodedCredentials"]}");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+})
+.AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError()
+    .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))))
+.AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError()
+    .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)));
+
 
 var app = builder.Build();
 
